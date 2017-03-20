@@ -4,16 +4,30 @@
 
 import urllib2
 from bs4 import BeautifulSoup
-from bs4 import SoupStrainer
 from PIL import Image
 from cStringIO import StringIO
+from selenium import webdriver
+from selenium.common.exceptions import NoSuchElementException, TimeoutException
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 
 # The playlist url, constant for now
 url = "https://www.youtube.com/playlist?list=PLPV3XXS84jhAFXrEIlNJ-gMwNqUpnTL6l"
-html = urllib2.urlopen(url)
 
+# Fist, I have to load the full playlist with the 'Load more' button. I'll use selenium for that
+driver = webdriver.Firefox()
+driver.get(url)
+try:
+	while(True):
+		wait = WebDriverWait(driver, 5)
+		wait.until(EC.element_to_be_clickable((By.CLASS_NAME, 'browse-items-load-more-button'))).click()
+except (NoSuchElementException, TimeoutException):
+	pass
+
+html = driver.page_source
+driver.quit()
 soup = BeautifulSoup(html,"html.parser")
-
 
 # Header
 header = soup.find(id="pl-header")
